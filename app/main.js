@@ -5,6 +5,7 @@ const app = express();
 const request = require('request');
 const cookieParser = require('cookie-parser');
 const uuid = require('uuid');
+const cors = require('cors');
 
 const port = 8010;
 const dbBaseUrl = 'http://127.0.0.1:5984';
@@ -27,7 +28,7 @@ const databases = [
     ]
   },
   {
-    names: ['_utils', '_all_dbs'],
+    names: ['', '_utils', '_all_dbs', '_session', '_uuids', 'favicon'],
     allow: [
       {
         methods: ['GET'],
@@ -47,6 +48,7 @@ const databases = [
 ];
 
 app.set('trust proxy', 'loopback');
+app.use(cors());
 app.use(cookieParser());
 
 app.use((req, res, next) => {
@@ -59,7 +61,7 @@ app.use((req, res, next) => {
   let reqId = uuid.v4().replace(/-/g, '').slice(0, 10);
   console.log(`${reqId} ${req.ip} ${req.method} ${req.path}`);
 
-  let reqDb = req.path.split('/')[1];
+  let reqPath0 = req.path.split('/')[1];
 
   // What we can do here is:
   // If the request already comes with some authentication, we can just let it
@@ -73,10 +75,10 @@ app.use((req, res, next) => {
     console.log(reqId + ' request includes authorization header; passing through unmodified');
   } else {
     // Apply filter
-    let thisDb = databases.find(x => x.names.includes(reqDb));
+    let thisDb = databases.find(x => x.names.includes(reqPath0));
     if (!thisDb) {
       // Database not found in our whitelist. Assume request is not allowed.
-      console.log(reqId + ' request db not found in whitelist');
+      console.log(reqId + ' request path not found in whitelist');
       res.status(403);
       return res.end();
     }
