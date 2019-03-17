@@ -10,12 +10,27 @@ const cors = require('cors');
 const port = 8010;
 const dbBaseUrl = 'http://127.0.0.1:5984';
 // process.env.COUCHDB_CREDS = username and password separated by a colon
-const dbCreds = process.env.COUCHDB_CREDS; 
+const dbCreds = process.env.COUCHDB_CREDS;
 
 if (!dbCreds) {
   console.error('Set env var COUCHDB_CREDS="username:password"')
   process.exit(1);
 }
+
+class CompositePolicy {
+  constructor() {
+    // default deny
+    this.policy = (path, method, srcIp) => false;
+  }
+  extend(func) {
+    let currentPolicy = this.policy
+    this.policy = func(currentPolicy);
+  }
+}
+
+const policy = new CompositePolicy();
+policy.extend(currentPolicy => {
+});
 
 const databases = [
   {
@@ -23,7 +38,11 @@ const databases = [
     allow: [
       {
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        ips: ['73.166.234.68', '::1'],
+        ips: [
+          '73.32.7.39', // EQ
+          '73.166.234.68', // home
+          '::1'
+        ],
       },
     ]
   },
@@ -32,7 +51,11 @@ const databases = [
     allow: [
       {
         methods: ['GET'],
-        ips: ['73.166.234.68', '::1'],
+        ips: [
+          '73.32.7.39', // EQ
+          '73.166.234.68', // home
+          '::1'
+        ],
       },
     ]
   },
@@ -41,7 +64,11 @@ const databases = [
     allow: [
       {
         methods: ['POST'],
-        ips: ['73.166.234.68', '::1'],
+        ips: [
+          '73.32.7.39', // EQ
+          '73.166.234.68', // home
+          '::1'
+        ],
       },
     ]
   },
